@@ -28,11 +28,11 @@ export const isoTimestampSchema = z.string()
 	.brand<'ISOTimestamp'>();
 
 export const dailyDateSchema = z.string()
-	.regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
+	.regex(/^\d{4}-\d{2}-\d{2}( (Sun|Mon|Tue|Wed|Thu|Fri|Sat))?$/, 'Date must be in YYYY-MM-DD or YYYY-MM-DD DDD format')
 	.brand<'DailyDate'>();
 
 export const activityDateSchema = z.string()
-	.regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
+	.regex(/^\d{4}-\d{2}-\d{2}( (Sun|Mon|Tue|Wed|Thu|Fri|Sat))?$/, 'Date must be in YYYY-MM-DD or YYYY-MM-DD DDD format')
 	.brand<'ActivityDate'>();
 
 export const monthlyDateSchema = z.string()

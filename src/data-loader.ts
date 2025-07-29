@@ -469,7 +469,8 @@ export function formatDate(dateStr: string): string {
 	const year = date.getFullYear();
 	const month = String(date.getMonth() + 1).padStart(2, '0');
 	const day = String(date.getDate()).padStart(2, '0');
-	return `${year}-${month}-${day}`;
+	const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
+	return `${year}-${month}-${day} ${dayOfWeek}`;
 }
 
 /**
@@ -482,7 +483,8 @@ export function formatDateCompact(dateStr: string): string {
 	const year = date.getFullYear();
 	const month = String(date.getMonth() + 1).padStart(2, '0');
 	const day = String(date.getDate()).padStart(2, '0');
-	return `${year}\n${month}-${day}`;
+	const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
+	return `${year}\n${month}-${day} ${dayOfWeek}`;
 }
 
 /**
@@ -1247,39 +1249,39 @@ if (import.meta.vitest != null) {
 	describe('formatDate', () => {
 		it('formats UTC timestamp to local date', () => {
 		// Test with UTC timestamps - results depend on local timezone
-			expect(formatDate('2024-01-01T00:00:00Z')).toBe('2024-01-01');
-			expect(formatDate('2024-12-31T23:59:59Z')).toBe('2024-12-31');
+			expect(formatDate('2024-01-01T00:00:00Z')).toBe('2024-01-01 Mon');
+			expect(formatDate('2024-12-31T23:59:59Z')).toBe('2024-12-31 Tue');
 		});
 
 		it('handles various date formats', () => {
-			expect(formatDate('2024-01-01')).toBe('2024-01-01');
-			expect(formatDate('2024-01-01T12:00:00')).toBe('2024-01-01');
-			expect(formatDate('2024-01-01T12:00:00.000Z')).toBe('2024-01-01');
+			expect(formatDate('2024-01-01')).toBe('2024-01-01 Mon');
+			expect(formatDate('2024-01-01T12:00:00')).toBe('2024-01-01 Mon');
+			expect(formatDate('2024-01-01T12:00:00.000Z')).toBe('2024-01-01 Mon');
 		});
 
 		it('pads single digit months and days', () => {
 			// Use UTC noon to avoid timezone issues
-			expect(formatDate('2024-01-05T12:00:00Z')).toBe('2024-01-05');
-			expect(formatDate('2024-10-01T12:00:00Z')).toBe('2024-10-01');
+			expect(formatDate('2024-01-05T12:00:00Z')).toBe('2024-01-05 Fri');
+			expect(formatDate('2024-10-01T12:00:00Z')).toBe('2024-10-01 Tue');
 		});
 	});
 
 	describe('formatDateCompact', () => {
 		it('formats UTC timestamp to local date with line break', () => {
-			expect(formatDateCompact('2024-01-01T00:00:00Z')).toBe('2024\n01-01');
+			expect(formatDateCompact('2024-01-01T00:00:00Z')).toBe('2024\n01-01 Mon');
 		});
 
 		it('handles various date formats', () => {
-			expect(formatDateCompact('2024-12-31T23:59:59Z')).toBe('2024\n12-31');
-			expect(formatDateCompact('2024-01-01')).toBe('2024\n01-01');
-			expect(formatDateCompact('2024-01-01T12:00:00')).toBe('2024\n01-01');
-			expect(formatDateCompact('2024-01-01T12:00:00.000Z')).toBe('2024\n01-01');
+			expect(formatDateCompact('2024-12-31T23:59:59Z')).toBe('2024\n12-31 Tue');
+			expect(formatDateCompact('2024-01-01')).toBe('2024\n01-01 Mon');
+			expect(formatDateCompact('2024-01-01T12:00:00')).toBe('2024\n01-01 Mon');
+			expect(formatDateCompact('2024-01-01T12:00:00.000Z')).toBe('2024\n01-01 Mon');
 		});
 
 		it('pads single digit months and days', () => {
 			// Use UTC noon to avoid timezone issues
-			expect(formatDateCompact('2024-01-05T12:00:00Z')).toBe('2024\n01-05');
-			expect(formatDateCompact('2024-10-01T12:00:00Z')).toBe('2024\n10-01');
+			expect(formatDateCompact('2024-01-05T12:00:00Z')).toBe('2024\n01-05 Fri');
+			expect(formatDateCompact('2024-10-01T12:00:00Z')).toBe('2024\n10-01 Tue');
 		});
 	});
 
