@@ -14,7 +14,7 @@ export default defineConfig({
 	minify: 'dce-only',
 	treeshake: true,
 	dts: {
-		tsgo: true,
+		tsgo: false,
 		resolve: ['type-fest'],
 	},
 	publint: true,
