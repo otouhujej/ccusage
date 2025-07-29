@@ -8,8 +8,8 @@
 		],
 		"moduleDetection": "force",
 		"module": "Preserve",
-		// Bundler mode
-		"moduleResolution": "bundler",
+		// Node mode
+		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"types": [
 			"vitest/globals",

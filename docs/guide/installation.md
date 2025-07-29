@@ -17,10 +17,6 @@ The fastest way to use ccusage is to run it directly:
 
 ::: code-group
 
-```bash [bunx (Recommended)]
-bunx ccusage
-```
-
 ```bash [npx]
 npx ccusage@latest
 ```
@@ -35,9 +31,6 @@ deno run -E -R=$HOME/.claude/projects/ -S=homedir -N='raw.githubusercontent.com:
 
 :::
 
-::: tip Speed Recommendation
-We strongly recommend using `bunx` instead of `npx` due to the massive speed difference. Bunx caches packages more efficiently, resulting in near-instant startup times after the first run.
-:::
 
 ::: info Deno Security
 Consider using `deno run` if you want additional security controls. Deno allows you to specify exact permissions, making it safer to run tools you haven't audited.
@@ -49,8 +42,7 @@ Here's why runtime choice matters:
 
 | Runtime | First Run | Subsequent Runs | Notes |
 |---------|-----------|-----------------|-------|
-| bunx | Fast | **Instant** | Best overall choice |
-| npx | Slow | Moderate | Widely available |
+| npx | Moderate | Acceptable | Standard npm option |
 | pnpm dlx | Fast | Fast | Good alternative |
 | deno | Moderate | Fast | Best for security |
 
@@ -62,10 +54,6 @@ While not necessary due to our small bundle size, you can still install ccusage 
 
 ```bash [npm]
 npm install -g ccusage
-```
-
-```bash [bun]
-bun install -g ccusage
 ```
 
 ```bash [yarn]
@@ -96,27 +84,27 @@ git clone https://github.com/ryoppippi/ccusage.git
 cd ccusage
 
 # Install dependencies
-bun install
+npm install
 
 # Run directly from source
-bun run start daily
-bun run start monthly --json
+npm run start daily
+npm run start monthly --json
 ```
 
 ### Development Scripts
 
 ```bash
 # Run tests
-bun run test
+npm run test
 
 # Type checking
-bun typecheck
+npm run typecheck
 
 # Build distribution
-bun run build
+npm run build
 
 # Lint and format
-bun run format
+npm run format
 ```
 
 ## Runtime Requirements
@@ -126,12 +114,6 @@ bun run format
 - **Minimum**: Node.js 20.x
 - **Recommended**: Node.js 20.x or later
 - **LTS versions** are fully supported
-
-### Bun (Alternative)
-
-- **Minimum**: Bun 1.2+
-- **Recommended**: Latest stable release
-- Often faster than Node.js for ccusage
 
 ### Deno
 
@@ -173,7 +155,7 @@ ccusage daily
 
 ## Updating
 
-### Direct Execution (npx/bunx)
+### Direct Execution (npx)
 
 Always gets the latest version automatically.
 
@@ -183,8 +165,6 @@ Always gets the latest version automatically.
 # Update with npm
 npm update -g ccusage
 
-# Update with bun
-bun update -g ccusage
 ```
 
 ### Check Current Version
@@ -201,10 +181,6 @@ ccusage --version
 
 ```bash [npm]
 npm uninstall -g ccusage
-```
-
-```bash [bun]
-bun remove -g ccusage
 ```
 
 ```bash [yarn]
@@ -261,8 +237,8 @@ If installation fails due to network issues:
 # Try with different registry
 npm install -g ccusage --registry https://registry.npmjs.org
 
-# Or use bunx for offline-capable runs
-bunx ccusage
+# Or use npx for offline-capable runs
+npx ccusage
 ```
 
 ### Version Conflicts

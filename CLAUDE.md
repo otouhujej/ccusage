@@ -6,39 +6,39 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Testing and Quality:**
 
-- `bun run test` - Run all tests (using vitest via bun)
+- `npm run test` - Run all tests (using vitest)
 - Lint code using ESLint MCP server (available via Claude Code tools)
-- `bun run format` - Format code with ESLint (writes changes)
-- `bun typecheck` - Type check with TypeScript
+- `npm run format` - Format code with ESLint (writes changes)
+- `npm run typecheck` - Type check with TypeScript
 
 **Build and Release:**
 
-- `bun run build` - Build distribution files with tsdown
-- `bun run release` - Full release workflow (lint + typecheck + test + build + version bump)
+- `npm run build` - Build distribution files with tsdown
+- `npm run release` - Full release workflow (lint + typecheck + test + build + version bump)
 
 **Development Usage:**
 
-- `bun run start daily` - Show daily usage report
-- `bun run start monthly` - Show monthly usage report
-- `bun run start session` - Show session-based usage report
-- `bun run start blocks` - Show 5-hour billing blocks usage report
-- `bun run start daily --json` - Show daily usage report in JSON format
-- `bun run start monthly --json` - Show monthly usage report in JSON format
-- `bun run start session --json` - Show session usage report in JSON format
-- `bun run start blocks --json` - Show blocks usage report in JSON format
-- `bun run start daily --mode <mode>` - Control cost calculation mode (auto/calculate/display)
-- `bun run start monthly --mode <mode>` - Control cost calculation mode (auto/calculate/display)
-- `bun run start session --mode <mode>` - Control cost calculation mode (auto/calculate/display)
-- `bun run start blocks --mode <mode>` - Control cost calculation mode (auto/calculate/display)
-- `bun run start blocks --active` - Show only active block with projections
-- `bun run start blocks --recent` - Show blocks from last 3 days (including active)
-- `bun run start blocks --token-limit <limit>` - Token limit for quota warnings (number or "max")
-- `bun run ./src/index.ts` - Direct execution for development
+- `npm run start daily` - Show daily usage report
+- `npm run start monthly` - Show monthly usage report
+- `npm run start session` - Show session-based usage report
+- `npm run start blocks` - Show 5-hour billing blocks usage report
+- `npm run start daily --json` - Show daily usage report in JSON format
+- `npm run start monthly --json` - Show monthly usage report in JSON format
+- `npm run start session --json` - Show session usage report in JSON format
+- `npm run start blocks --json` - Show blocks usage report in JSON format
+- `npm run start daily --mode <mode>` - Control cost calculation mode (auto/calculate/display)
+- `npm run start monthly --mode <mode>` - Control cost calculation mode (auto/calculate/display)
+- `npm run start session --mode <mode>` - Control cost calculation mode (auto/calculate/display)
+- `npm run start blocks --mode <mode>` - Control cost calculation mode (auto/calculate/display)
+- `npm run start blocks --active` - Show only active block with projections
+- `npm run start blocks --recent` - Show blocks from last 3 days (including active)
+- `npm run start blocks --token-limit <limit>` - Token limit for quota warnings (number or "max")
+- `node ./src/index.ts` - Direct execution for development
 
 **MCP Server Usage:**
 
-- `bun run start mcp` - Start MCP server with stdio transport (default)
-- `bun run start mcp --type http --port 8080` - Start MCP server with HTTP transport
+- `npm run start mcp` - Start MCP server with stdio transport (default)
+- `npm run start mcp --type http --port 8080` - Start MCP server with HTTP transport
 
 **Cost Calculation Modes:**
 
@@ -103,7 +103,7 @@ This is a CLI tool that analyzes Claude Code usage data from local JSONL files s
 ## Code Style Notes
 
 - Uses ESLint for linting and formatting with tab indentation and double quotes
-- TypeScript with strict mode and bundler module resolution
+- TypeScript with strict mode and node module resolution
 - No console.log allowed except where explicitly disabled with eslint-disable
 - Error handling: silently skips malformed JSONL lines during parsing
 - File paths always use Node.js path utilities for cross-platform compatibility
@@ -138,9 +138,9 @@ This is a CLI tool that analyzes Claude Code usage data from local JSONL files s
 
 After making any code changes, ALWAYS run these commands in parallel:
 
-- `bun run format` - Auto-fix and format code with ESLint (includes linting)
-- `bun typecheck` - Type check with TypeScript
-- `bun run test` - Run all tests
+- `npm run format` - Auto-fix and format code with ESLint (includes linting)
+- `npm run typecheck` - Type check with TypeScript
+- `npm run test` - Run all tests
 
 This ensures code quality and catches issues immediately after changes.
 
