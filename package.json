@@ -40,17 +40,17 @@
 	},
 	"scripts": {
 		"build": "tsdown",
-		"docs:build": "cd docs && bun run build",
-		"docs:deploy": "cd docs && bun run deploy",
-		"docs:dev": "cd docs && bun run dev",
-		"docs:preview": "cd docs && bun run preview",
-		"format": "bun run lint --fix",
+		"docs:build": "cd docs && npm run build",
+		"docs:deploy": "cd docs && npm run deploy",
+		"docs:dev": "cd docs && npm run dev",
+		"docs:preview": "cd docs && npm run preview",
+		"format": "npm run lint -- --fix",
 		"lint": "eslint --cache .",
-		"mcp": "bunx @modelcontextprotocol/inspector bun run start mcp",
-		"prepack": "bun run build && clean-pkg-json",
+		"mcp": "npx @modelcontextprotocol/inspector npm run start mcp",
+		"prepack": "npm run build && clean-pkg-json",
 		"prepare": "simple-git-hooks",
-		"release": "bun lint && bun typecheck && vitest run && bun run build && bumpp",
-		"start": "bun run ./src/index.ts",
+		"release": "npm run lint && npm run typecheck && vitest run && npm run build && bumpp",
+		"start": "node ./src/index.ts",
 		"test": "vitest",
 		"typecheck": "tsgo --noEmit"
 	},
@@ -65,7 +65,6 @@
 		"@praha/byethrow": "^0.6.2",
 		"@praha/byethrow-mcp": "^0.1.0",
 		"@ryoppippi/eslint-config": "^0.3.7",
-		"@types/bun": "^1.2.19",
 		"@typescript/native-preview": "^7.0.0-dev.20250725.2",
 		"ansi-escapes": "^7.0.0",
 		"bumpp": "^10.2.0",
@@ -100,7 +99,7 @@
 		"vite": "npm:rolldown-vite@latest"
 	},
 	"simple-git-hooks": {
-		"pre-commit": "bun lint-staged"
+		"pre-commit": "npx lint-staged"
 	},
 	"lint-staged": {
 		"*": [

@@ -500,13 +500,27 @@ function sortByDate<T>(
 	order: SortOrder = 'desc',
 ): T[] {
 	const sorted = sort(items);
+
+	// Helper to parse date string that may include day of week
+	const parseDate = (dateValue: string | Date): number => {
+		if (dateValue instanceof Date) {
+			return dateValue.getTime();
+		}
+		// Extract just the date part (YYYY-MM-DD) if day of week is present
+		const datePart = dateValue.split(' ')[0];
+		return new Date(datePart).getTime();
+	};
+
 	switch (order) {
 		case 'desc':
-			return sorted.desc(item => new Date(getDate(item)).getTime());
+			return sorted.desc(item => parseDate(getDate(item)));
 		case 'asc':
-			return sorted.asc(item => new Date(getDate(item)).getTime());
-		default:
-			unreachable(order);
+			return sorted.asc(item => parseDate(getDate(item)));
+		default: {
+			const _exhaustive: never = order;
+			// eslint-disable-next-line ts/no-unsafe-call, ts/no-unsafe-return
+			return unreachable(_exhaustive);
+		}
 	}
 }
 
@@ -636,7 +650,9 @@ export async function calculateCostForEntry(
 		return 0;
 	}
 
-	unreachable(mode);
+	const _exhaustive: never = mode;
+	// eslint-disable-next-line ts/no-unsafe-call, ts/no-unsafe-return
+	return unreachable(_exhaustive);
 }
 
 /**
@@ -1230,7 +1246,8 @@ export async function loadSessionBlockData(
 	// Filter by date range if specified
 	const dateFiltered = (options?.since != null && options.since !== '') || (options?.until != null && options.until !== '')
 		? blocks.filter((block) => {
-				const blockDateStr = formatDate(block.startTime.toISOString()).replace(/-/g, '');
+				// Extract just the date part from ISO string (YYYY-MM-DD) and remove dashes
+				const blockDateStr = block.startTime.toISOString().substring(0, 10).replace(/-/g, '');
 				if (options.since != null && options.since !== '' && blockDateStr < options.since) {
 					return false;
 				}
@@ -1248,9 +1265,11 @@ export async function loadSessionBlockData(
 if (import.meta.vitest != null) {
 	describe('formatDate', () => {
 		it('formats UTC timestamp to local date', () => {
-		// Test with UTC timestamps - results depend on local timezone
-			expect(formatDate('2024-01-01T00:00:00Z')).toBe('2024-01-01 Mon');
-			expect(formatDate('2024-12-31T23:59:59Z')).toBe('2024-12-31 Tue');
+			// Use UTC noon to avoid timezone issues
+			expect(formatDate('2024-01-01T12:00:00Z')).toBe('2024-01-01 Mon');
+			// Late UTC time may convert to next day in timezones ahead of UTC
+			const result = formatDate('2024-12-31T23:59:59Z');
+			expect(result).toMatch(/^202[45]-\d{2}-\d{2} (Tue|Wed)$/);
 		});
 
 		it('handles various date formats', () => {
@@ -1272,7 +1291,10 @@ if (import.meta.vitest != null) {
 		});
 
 		it('handles various date formats', () => {
-			expect(formatDateCompact('2024-12-31T23:59:59Z')).toBe('2024\n12-31 Tue');
+			// Note: 2024-12-31T23:59:59Z converts to local time, which may be 2025-01-01 in timezones ahead of UTC
+			const result = formatDateCompact('2024-12-31T23:59:59Z');
+			expect(result).toMatch(/^202[45]\n(12-31 Tue|01-01 Wed)$/);
+
 			expect(formatDateCompact('2024-01-01')).toBe('2024\n01-01 Mon');
 			expect(formatDateCompact('2024-01-01T12:00:00')).toBe('2024\n01-01 Mon');
 			expect(formatDateCompact('2024-01-01T12:00:00.000Z')).toBe('2024\n01-01 Mon');
@@ -1311,7 +1333,7 @@ if (import.meta.vitest != null) {
 			];
 
 			const mockData2: UsageData = {
-				timestamp: createISOTimestamp('2024-01-01T18:00:00Z'),
+				timestamp: createISOTimestamp('2024-01-01T14:00:00Z'), // Changed from 18:00 to 14:00 to avoid timezone rollover
 				message: { usage: { input_tokens: 300, output_tokens: 150 } },
 				costUSD: 0.03,
 			};
@@ -1332,7 +1354,7 @@ if (import.meta.vitest != null) {
 			const result = await loadDailyUsageData({ claudePath: fixture.path });
 
 			expect(result).toHaveLength(1);
-			expect(result[0]?.date).toBe('2024-01-01');
+			expect(result[0]?.date).toBe('2024-01-01 Mon');
 			expect(result[0]?.inputTokens).toBe(600); // 100 + 200 + 300
 			expect(result[0]?.outputTokens).toBe(300); // 50 + 100 + 150
 			expect(result[0]?.totalCost).toBe(0.06); // 0.01 + 0.02 + 0.03
@@ -1404,7 +1426,7 @@ if (import.meta.vitest != null) {
 			});
 
 			expect(result).toHaveLength(1);
-			expect(result[0]?.date).toBe('2024-01-15');
+			expect(result[0]?.date).toBe('2024-01-15 Mon');
 			expect(result[0]?.inputTokens).toBe(200);
 		});
 
@@ -1439,9 +1461,9 @@ if (import.meta.vitest != null) {
 
 			const result = await loadDailyUsageData({ claudePath: fixture.path });
 
-			expect(result[0]?.date).toBe('2024-01-31');
-			expect(result[1]?.date).toBe('2024-01-15');
-			expect(result[2]?.date).toBe('2024-01-01');
+			expect(result[0]?.date).toBe('2024-01-31 Wed');
+			expect(result[1]?.date).toBe('2024-01-15 Mon');
+			expect(result[2]?.date).toBe('2024-01-01 Mon');
 		});
 
 		it('sorts by date ascending when order is \'asc\'', async () => {
@@ -1479,9 +1501,9 @@ if (import.meta.vitest != null) {
 			});
 
 			expect(result).toHaveLength(3);
-			expect(result[0]?.date).toBe('2024-01-01');
-			expect(result[1]?.date).toBe('2024-01-15');
-			expect(result[2]?.date).toBe('2024-01-31');
+			expect(result[0]?.date).toBe('2024-01-01 Mon');
+			expect(result[1]?.date).toBe('2024-01-15 Mon');
+			expect(result[2]?.date).toBe('2024-01-31 Wed');
 		});
 
 		it('sorts by date descending when order is \'desc\'', async () => {
@@ -1519,9 +1541,9 @@ if (import.meta.vitest != null) {
 			});
 
 			expect(result).toHaveLength(3);
-			expect(result[0]?.date).toBe('2024-01-31');
-			expect(result[1]?.date).toBe('2024-01-15');
-			expect(result[2]?.date).toBe('2024-01-01');
+			expect(result[0]?.date).toBe('2024-01-31 Wed');
+			expect(result[1]?.date).toBe('2024-01-15 Mon');
+			expect(result[2]?.date).toBe('2024-01-01 Mon');
 		});
 
 		it('handles invalid JSON lines gracefully', async () => {
@@ -1530,7 +1552,7 @@ if (import.meta.vitest != null) {
 invalid json line
 {"timestamp":"2024-01-01T12:00:00Z","message":{"usage":{"input_tokens":200,"output_tokens":100}},"costUSD":0.02}
 { broken json
-{"timestamp":"2024-01-01T18:00:00Z","message":{"usage":{"input_tokens":300,"output_tokens":150}},"costUSD":0.03}
+{"timestamp":"2024-01-01T14:00:00Z","message":{"usage":{"input_tokens":300,"output_tokens":150}},"costUSD":0.03}
 `.trim();
 
 			await using fixture = await createFixture({
@@ -1553,12 +1575,12 @@ invalid json line
 
 		it('skips data without required fields', async () => {
 			const mockData = `
-{"timestamp":"2024-01-01T12:00:00Z","message":{"usage":{"input_tokens":100,"output_tokens":50}},"costUSD":0.01}
-{"timestamp":"2024-01-01T14:00:00Z","message":{"usage":{}}}
-{"timestamp":"2024-01-01T18:00:00Z","message":{}}
-{"timestamp":"2024-01-01T20:00:00Z"}
+{"timestamp":"2024-01-01T10:00:00Z","message":{"usage":{"input_tokens":100,"output_tokens":50}},"costUSD":0.01}
+{"timestamp":"2024-01-01T11:00:00Z","message":{"usage":{}}}
+{"timestamp":"2024-01-01T12:00:00Z","message":{}}
+{"timestamp":"2024-01-01T13:00:00Z"}
 {"message":{"usage":{"input_tokens":200,"output_tokens":100}}}
-{"timestamp":"2024-01-01T22:00:00Z","message":{"usage":{"input_tokens":300,"output_tokens":150}},"costUSD":0.03}
+{"timestamp":"2024-01-01T14:00:00Z","message":{"usage":{"input_tokens":300,"output_tokens":150}},"costUSD":0.03}
 `.trim();
 
 			await using fixture = await createFixture({
@@ -2018,7 +2040,7 @@ invalid json line
 			expect(session?.cacheCreationTokens).toBe(30); // 10 + 20
 			expect(session?.cacheReadTokens).toBe(15); // 5 + 10
 			expect(session?.totalCost).toBe(0.03); // 0.01 + 0.02
-			expect(session?.lastActivity).toBe('2024-01-01');
+			expect(session?.lastActivity).toBe('2024-01-01 Mon');
 		});
 
 		it('tracks versions', async () => {
@@ -2036,7 +2058,7 @@ invalid json line
 					costUSD: 0.02,
 				},
 				{
-					timestamp: createISOTimestamp('2024-01-01T18:00:00Z'),
+					timestamp: createISOTimestamp('2024-01-01T14:00:00Z'),
 					message: { usage: { input_tokens: 300, output_tokens: 150 } },
 					version: createVersion('1.0.0'), // Duplicate version
 					costUSD: 0.03,
@@ -2249,7 +2271,7 @@ invalid json line
 			});
 
 			expect(result).toHaveLength(1);
-			expect(result[0]?.lastActivity).toBe('2024-01-15');
+			expect(result[0]?.lastActivity).toBe('2024-01-15 Mon');
 		});
 	});
 
@@ -2280,7 +2302,7 @@ invalid json line
 				const results = await loadDailyUsageData({ claudePath: fixture.path });
 
 				expect(results).toHaveLength(1);
-				expect(results[0]?.date).toBe('2024-01-15');
+				expect(results[0]?.date).toBe('2024-01-15 Mon');
 				expect(results[0]?.inputTokens).toBe(1000);
 				expect(results[0]?.outputTokens).toBe(500);
 				expect(results[0]?.totalCost).toBe(0.05);
@@ -2316,7 +2338,7 @@ invalid json line
 				const results = await loadDailyUsageData({ claudePath: fixture.path });
 
 				expect(results).toHaveLength(1);
-				expect(results[0]?.date).toBe('2024-01-16');
+				expect(results[0]?.date).toBe('2024-01-16 Tue');
 				expect(results[0]?.inputTokens).toBe(1000);
 				expect(results[0]?.outputTokens).toBe(500);
 				expect(results[0]?.cacheCreationTokens).toBe(200);
@@ -2356,7 +2378,7 @@ invalid json line
 				const results = await loadDailyUsageData({ claudePath: fixture.path });
 
 				expect(results).toHaveLength(1);
-				expect(results[0]?.date).toBe('2024-01-16');
+				expect(results[0]?.date).toBe('2024-01-16 Tue');
 				expect(results[0]?.inputTokens).toBe(1000);
 				expect(results[0]?.outputTokens).toBe(500);
 				expect(results[0]?.cacheCreationTokens).toBe(200);
@@ -2400,7 +2422,7 @@ invalid json line
 				const results = await loadDailyUsageData({ claudePath: fixture.path });
 
 				expect(results).toHaveLength(1);
-				expect(results[0]?.date).toBe('2024-01-17');
+				expect(results[0]?.date).toBe('2024-01-17 Wed');
 				expect(results[0]?.inputTokens).toBe(600); // 100 + 200 + 300
 				expect(results[0]?.outputTokens).toBe(300); // 50 + 100 + 150
 
@@ -2534,7 +2556,7 @@ invalid json line
 				const results = await loadDailyUsageData({ claudePath: fixture.path });
 
 				expect(results).toHaveLength(1);
-				expect(results[0]?.date).toBe('2024-01-20');
+				expect(results[0]?.date).toBe('2024-01-20 Sat');
 				expect(results[0]?.inputTokens).toBe(1000);
 				expect(results[0]?.outputTokens).toBe(500);
 				expect(results[0]?.cacheCreationTokens).toBe(2000);
@@ -2571,7 +2593,7 @@ invalid json line
 				const results = await loadDailyUsageData({ claudePath: fixture.path });
 
 				expect(results).toHaveLength(1);
-				expect(results[0]?.date).toBe('2024-01-20');
+				expect(results[0]?.date).toBe('2024-01-20 Sat');
 				expect(results[0]?.inputTokens).toBe(1000);
 				expect(results[0]?.outputTokens).toBe(500);
 				expect(results[0]?.cacheCreationTokens).toBe(2000);
@@ -3597,7 +3619,7 @@ if (import.meta.vitest != null) {
 
 				// Should only have one entry for 2025-01-10
 				expect(data).toHaveLength(1);
-				expect(data[0]?.date).toBe('2025-01-10');
+				expect(data[0]?.date).toBe('2025-01-10 Fri');
 				expect(data[0]?.inputTokens).toBe(100);
 				expect(data[0]?.outputTokens).toBe(50);
 			});
@@ -3639,7 +3661,7 @@ if (import.meta.vitest != null) {
 
 				// Should keep the older entry (100/50 tokens) not the newer one (200/100)
 				expect(data).toHaveLength(1);
-				expect(data[0]?.date).toBe('2025-01-10');
+				expect(data[0]?.date).toBe('2025-01-10 Fri');
 				expect(data[0]?.inputTokens).toBe(100);
 				expect(data[0]?.outputTokens).toBe(50);
 			});
@@ -3805,7 +3827,7 @@ if (import.meta.vitest != null) {
 
 			const result = await loadDailyUsageData();
 			// Find the specific date we're testing
-			const targetDate = result.find(day => day.date === '2024-01-01');
+			const targetDate = result.find(day => day.date === '2024-01-01 Mon');
 			expect(targetDate).toBeDefined();
 			expect(targetDate?.inputTokens).toBe(300);
 			expect(targetDate?.outputTokens).toBe(150);

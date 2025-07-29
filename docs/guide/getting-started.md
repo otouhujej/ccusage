@@ -5,7 +5,7 @@ Welcome to ccusage! This guide will help you get up and running with analyzing y
 ## Prerequisites
 
 - Claude Code installed and used (generates JSONL files)
-- Node.js 20+ or Bun runtime
+- Node.js 20+ runtime
 
 ## Quick Start
 
@@ -15,10 +15,6 @@ The fastest way to try ccusage is to run it directly without installation:
 
 ```bash [npx]
 npx ccusage@latest
-```
-
-```bash [bunx]
-bunx ccusage
 ```
 
 ```bash [pnpm]

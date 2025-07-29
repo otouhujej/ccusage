@@ -10,8 +10,6 @@ npm install ccusage
 yarn add ccusage
 # or
 pnpm add ccusage
-# or
-bun add ccusage
 ```
 
 ## Basic Usage

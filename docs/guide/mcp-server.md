@@ -89,10 +89,10 @@ You can test the MCP server using the MCP Inspector for interactive debugging:
 
 ```bash
 # Test with web UI (if you have the dev environment set up)
-bun run mcp
+npm run mcp
 
 # Test with the official MCP Inspector
-bunx @modelcontextprotocol/inspector bunx ccusage mcp
+npx @modelcontextprotocol/inspector npx ccusage mcp
 ```
 
 The MCP Inspector provides a web-based interface to:
