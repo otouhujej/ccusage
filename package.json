@@ -39,7 +39,7 @@
 		"node": ">=20.19.4"
 	},
 	"scripts": {
-		"build": "tsdown",
+		"build": "NODE_NO_WARNINGS=1 tsdown",
 		"docs:build": "cd docs && npm run build",
 		"docs:deploy": "cd docs && npm run deploy",
 		"docs:dev": "cd docs && npm run dev",
