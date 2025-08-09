@@ -527,6 +527,83 @@ function sortByDate<T>(
 }
 
 /**
+ * Generate an array of dates between start and end dates (inclusive)
+ * @param startDate - Start date string (YYYY-MM-DD format)
+ * @param endDate - End date string (YYYY-MM-DD format)
+ * @returns Array of date strings in YYYY-MM-DD format
+ */
+export function generateDateRange(startDate: string, endDate: string): string[] {
+	const dates: string[] = [];
+	const current = new Date(`${startDate}T00:00:00`);
+	const end = new Date(`${endDate}T00:00:00`);
+
+	// eslint-disable-next-line no-unmodified-loop-condition
+	while (current <= end) {
+		const year = current.getFullYear();
+		const month = String(current.getMonth() + 1).padStart(2, '0');
+		const day = String(current.getDate()).padStart(2, '0');
+		dates.push(`${year}-${month}-${day}`);
+		current.setDate(current.getDate() + 1);
+	}
+
+	return dates;
+}
+
+/**
+ * Fill missing dates with zero values in daily usage data
+ * @param dailyData - Array of daily usage data
+ * @param fillGaps - Whether to fill gaps with zero values
+ * @returns Array with missing dates filled with zero values
+ */
+export function fillMissingDates(dailyData: DailyUsage[], fillGaps: boolean): DailyUsage[] {
+	if (!fillGaps || dailyData.length === 0) {
+		return dailyData;
+	}
+
+	// Extract just the date part (YYYY-MM-DD) from the date string
+	const extractDate = (dateStr: string): string => dateStr.split(' ')[0] ?? dateStr;
+
+	// Find date range from the data
+	const dates = dailyData.map(d => extractDate(d.date));
+	const minDate = dates.reduce((min, date) => date < min ? date : min);
+	const maxDate = dates.reduce((max, date) => date > max ? date : max);
+
+	// Generate all dates in range
+	const allDates = generateDateRange(minDate, maxDate);
+
+	// Create a map of existing data by date
+	const dataMap = new Map<string, DailyUsage>();
+	for (const item of dailyData) {
+		dataMap.set(extractDate(item.date), item);
+	}
+
+	// Fill missing dates with zero values
+	const filledData: DailyUsage[] = [];
+	for (const date of allDates) {
+		const existing = dataMap.get(date);
+		if (existing != null) {
+			filledData.push(existing);
+		}
+		else {
+			// Create zero-filled entry for missing date
+			const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${date}T00:00:00`).getDay()];
+			filledData.push({
+				date: createDailyDate(`${date} ${dayOfWeek}`),
+				inputTokens: 0,
+				outputTokens: 0,
+				cacheCreationTokens: 0,
+				cacheReadTokens: 0,
+				totalCost: 0,
+				modelsUsed: [],
+				modelBreakdowns: [],
+			});
+		}
+	}
+
+	return filledData;
+}
+
+/**
  * Create a unique identifier for deduplication using message ID and request ID
  */
 export function createUniqueHash(data: UsageData): string | null {
@@ -1284,6 +1361,120 @@ if (import.meta.vitest != null) {
 			// Use UTC noon to avoid timezone issues
 			expect(formatDate('2024-01-05T12:00:00Z')).toBe('2024-01-05 Fri');
 			expect(formatDate('2024-10-01T12:00:00Z')).toBe('2024-10-01 Tue');
+		});
+	});
+
+	describe('generateDateRange', () => {
+		it('generates date range between two dates', () => {
+			const result = generateDateRange('2024-01-01', '2024-01-05');
+			expect(result).toEqual([
+				'2024-01-01',
+				'2024-01-02',
+				'2024-01-03',
+				'2024-01-04',
+				'2024-01-05',
+			]);
+		});
+
+		it('handles single day range', () => {
+			const result = generateDateRange('2024-01-01', '2024-01-01');
+			expect(result).toEqual(['2024-01-01']);
+		});
+
+		it('handles month boundaries', () => {
+			const result = generateDateRange('2024-01-30', '2024-02-02');
+			expect(result).toEqual([
+				'2024-01-30',
+				'2024-01-31',
+				'2024-02-01',
+				'2024-02-02',
+			]);
+		});
+
+		it('handles year boundaries', () => {
+			const result = generateDateRange('2023-12-30', '2024-01-02');
+			expect(result).toEqual([
+				'2023-12-30',
+				'2023-12-31',
+				'2024-01-01',
+				'2024-01-02',
+			]);
+		});
+	});
+
+	describe('fillMissingDates', () => {
+		it('returns original data when fillGaps is false', () => {
+			const data: DailyUsage[] = [
+				{
+					date: createDailyDate('2024-01-01 Mon'),
+					inputTokens: 100,
+					outputTokens: 200,
+					cacheCreationTokens: 50,
+					cacheReadTokens: 75,
+					totalCost: 1.5,
+					modelsUsed: [createModelName('opus-4')],
+					modelBreakdowns: [],
+				},
+			];
+			const result = fillMissingDates(data, false);
+			expect(result).toEqual(data);
+		});
+
+		it('fills missing dates with zero values', () => {
+			const data: DailyUsage[] = [
+				{
+					date: createDailyDate('2024-01-01 Mon'),
+					inputTokens: 100,
+					outputTokens: 200,
+					cacheCreationTokens: 50,
+					cacheReadTokens: 75,
+					totalCost: 1.5,
+					modelsUsed: [createModelName('opus-4')],
+					modelBreakdowns: [],
+				},
+				{
+					date: createDailyDate('2024-01-03 Wed'),
+					inputTokens: 150,
+					outputTokens: 250,
+					cacheCreationTokens: 60,
+					cacheReadTokens: 80,
+					totalCost: 2.0,
+					modelsUsed: [createModelName('sonnet-4')],
+					modelBreakdowns: [],
+				},
+			];
+			const result = fillMissingDates(data, true);
+			expect(result).toHaveLength(3);
+			expect(result[0]?.date).toBe('2024-01-01 Mon');
+			expect(result[1]?.date).toBe('2024-01-02 Tue');
+			expect(result[1]?.inputTokens).toBe(0);
+			expect(result[1]?.outputTokens).toBe(0);
+			expect(result[1]?.totalCost).toBe(0);
+			expect(result[1]?.modelsUsed).toEqual([]);
+			expect(result[2]?.date).toBe('2024-01-03 Wed');
+		});
+
+		it('returns empty array for empty input', () => {
+			const result = fillMissingDates([], true);
+			expect(result).toEqual([]);
+		});
+
+		it('handles single entry without filling', () => {
+			const data: DailyUsage[] = [
+				{
+					date: createDailyDate('2024-01-15 Mon'),
+					inputTokens: 100,
+					outputTokens: 200,
+					cacheCreationTokens: 50,
+					cacheReadTokens: 75,
+					totalCost: 1.5,
+					modelsUsed: [createModelName('opus-4')],
+					modelBreakdowns: [],
+				},
+			];
+			const result = fillMissingDates(data, true);
+			expect(result).toHaveLength(1);
+			expect(result).toEqual(data);
 		});
 	});
 

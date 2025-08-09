@@ -10,7 +10,7 @@ import {
 	createTotalsObject,
 	getTotalTokens,
 } from '../calculate-cost.ts';
-import { formatDateCompact, loadDailyUsageData } from '../data-loader.ts';
+import { fillMissingDates, formatDateCompact, loadDailyUsageData } from '../data-loader.ts';
 import { detectMismatches, printMismatchReport } from '../debug.ts';
 import { log, logger } from '../logger.ts';
 
@@ -31,13 +31,19 @@ export const dailyCommand = define({
 			short: 'p',
 			description: 'Filter to specific project name',
 		},
+		fillGaps: {
+			type: 'boolean',
+			short: 'f',
+			description: 'Fill missing dates with zero values',
+			default: false,
+		},
 	},
 	async run(ctx) {
 		if (ctx.values.json) {
 			logger.level = 0;
 		}
 
-		const dailyData = await loadDailyUsageData({
+		let dailyData = await loadDailyUsageData({
 			since: ctx.values.since,
 			until: ctx.values.until,
 			mode: ctx.values.mode,
@@ -56,6 +62,9 @@ export const dailyCommand = define({
 			}
 			process.exit(0);
 		}
+
+		// Fill missing dates with zero values if requested
+		dailyData = fillMissingDates(dailyData, ctx.values.fillGaps);
 
 		// Calculate totals
 		const totals = calculateTotals(dailyData);

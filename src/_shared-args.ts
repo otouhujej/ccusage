@@ -78,6 +78,12 @@ export const sharedArgs = {
 		description: 'Use cached pricing data for Claude models instead of fetching from API',
 		default: false,
 	},
+	fillGaps: {
+		type: 'boolean',
+		short: 'f',
+		description: 'Fill missing dates with zero values in daily reports',
+		default: false,
+	},
 	color: { // --color and FORCE_COLOR=1 is handled by picocolors
 		type: 'boolean',
 		description: 'Enable colored output (default: auto). FORCE_COLOR=1 has the same effect.',
