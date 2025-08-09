@@ -566,7 +566,13 @@ export function fillMissingDates(dailyData: DailyUsage[], fillGaps: boolean): Da
 	// Find date range from the data
 	const dates = dailyData.map(d => extractDate(d.date));
 	const minDate = dates.reduce((min, date) => date < min ? date : min);
-	const maxDate = dates.reduce((max, date) => date > max ? date : max);
+	let maxDate = dates.reduce((max, date) => date > max ? date : max);
+
+	// Include today if it's after the max date in the data
+	const today = formatDate(new Date().toISOString()).split(' ')[0];
+	if (today != null && today > maxDate) {
+		maxDate = today;
+	}
 
 	// Generate all dates in range
 	const allDates = generateDateRange(minDate, maxDate);
