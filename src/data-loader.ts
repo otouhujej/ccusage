@@ -508,7 +508,9 @@ function sortByDate<T>(
 		}
 		// Extract just the date part (YYYY-MM-DD) if day of week is present
 		const datePart = dateValue.split(' ')[0];
-		return new Date(datePart).getTime();
+		// Ensure proper parsing of YYYY-MM-DD format by adding time component
+		// This prevents timezone issues and ensures consistent parsing
+		return new Date(`${datePart}T00:00:00`).getTime();
 	};
 
 	switch (order) {
