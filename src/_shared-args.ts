@@ -82,7 +82,7 @@ export const sharedArgs = {
 		type: 'boolean',
 		short: 'f',
 		description: 'Fill missing dates with zero values in daily reports',
-		default: false,
+		default: true,
 	},
 	color: { // --color and FORCE_COLOR=1 is handled by picocolors
 		type: 'boolean',

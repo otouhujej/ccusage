@@ -35,7 +35,7 @@ export const dailyCommand = define({
 			type: 'boolean',
 			short: 'f',
 			description: 'Fill missing dates with zero values',
-			default: false,
+			default: true,
 		},
 	},
 	async run(ctx) {
